@@ -15,6 +15,8 @@ npm run dev
 
 Open http://localhost:5173/.
 
+The public site is https://dvarghes.github.io/curious-keyboard/. Pushing the `main` branch to [dvarghes/curious-keyboard](https://github.com/dvarghes/curious-keyboard) runs `.github/workflows/pages.yml`, which builds with the `/curious-keyboard/` path and publishes GitHub Pages. In the repository settings, set Pages to deploy from GitHub Actions. Local `npm run dev` stays at the site root.
+
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Starts the local app |

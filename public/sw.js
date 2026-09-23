@@ -28,6 +28,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(request).then((hit) => hit || caches.match('/index.html'))),
+      .catch(() => caches.match(request).then((hit) => hit || caches.match(new URL('index.html', self.registration.scope)))),
   );
 });
