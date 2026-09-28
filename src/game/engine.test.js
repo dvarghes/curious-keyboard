@@ -210,7 +210,7 @@ test('difficulty sets one fall time for every word', () => {
     steps += 1;
   }
   assert.equal(recorded.length, level.waveSize);
-  assert.ok(recorded.every((value) => value === 1));
+  assert.ok(recorded.every((value) => value === 3));
 });
 
 function tile(id, word, progress, seq) {

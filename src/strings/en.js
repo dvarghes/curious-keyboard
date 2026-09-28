@@ -121,7 +121,7 @@ export const en = {
   countdown: 'Countdown before play',
   countdownOff: 'Off',
   speed: 'Speed',
-  beginner: 'Basic',
+  beginner: 'Beginner',
   intermediate: 'Intermediate',
   expert: 'Expert',
   seconds: 'seconds',

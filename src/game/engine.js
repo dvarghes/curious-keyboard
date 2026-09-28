@@ -88,9 +88,9 @@ export function placeX(tiles, rng = Math.random) {
 }
 
 export const FALL_SECONDS = {
-  beginner: 5,
-  intermediate: 3,
-  expert: 1,
+  beginner: 7,
+  intermediate: 5,
+  expert: 3,
 };
 
 export function applyDifficulty(run, difficulty) {
