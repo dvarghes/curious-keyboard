@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { en } from '../strings/en.js';
+import { FALL_SECONDS } from '../game/engine.js';
 import { ExportTools } from './ExportTools.jsx';
 
 export function Settings({ profile, board, profiles, onSettings, onPin, onReset, onErase, onClearBoard, onBack }) {
@@ -60,6 +61,23 @@ export function Settings({ profile, board, profiles, onSettings, onPin, onReset,
             </fieldset>
             <fieldset className="stack">
               <legend>Play</legend>
+              <label className="field">
+                <span>{en.countdown}</span>
+                <select value={String(settings.countdownSeconds ?? 0)} onChange={(event) => onSettings({ countdownSeconds: Number(event.target.value) })}>
+                  <option value="0">{en.countdownOff}</option>
+                  <option value="3">3 {en.seconds}</option>
+                  <option value="5">5 {en.seconds}</option>
+                  <option value="10">10 {en.seconds}</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>{en.speed}</span>
+                <select value={settings.difficulty || 'beginner'} onChange={(event) => onSettings({ difficulty: event.target.value })}>
+                  <option value="beginner">{en.beginner} — {FALL_SECONDS.beginner} {en.seconds}</option>
+                  <option value="intermediate">{en.intermediate} — {FALL_SECONDS.intermediate} {en.seconds}</option>
+                  <option value="expert">{en.expert} — {FALL_SECONDS.expert} {en.seconds}</option>
+                </select>
+              </label>
               <label className="check"><input type="checkbox" checked={settings.reducedMotion} onChange={(event) => onSettings({ reducedMotion: event.target.checked })} /> {en.motion}</label>
               <label className="check"><input type="checkbox" checked={settings.highContrast} onChange={(event) => onSettings({ highContrast: event.target.checked })} /> {en.contrast}</label>
               <label className="check"><input type="checkbox" checked={settings.fingerColors} onChange={(event) => onSettings({ fingerColors: event.target.checked })} /> {en.fingerColors}</label>

@@ -87,6 +87,20 @@ export function placeX(tiles, rng = Math.random) {
   return 0.14 + rng() * 0.72;
 }
 
+export const FALL_SECONDS = {
+  beginner: 7,
+  intermediate: 5,
+  expert: 3,
+};
+
+export function applyDifficulty(run, difficulty) {
+  const seconds = FALL_SECONDS[difficulty];
+  if (!seconds) return run;
+  run.fallSeconds = seconds;
+  run.lockFall = true;
+  return run;
+}
+
 export function createRun({ level, mode, queue }) {
   return {
     mode,
@@ -293,7 +307,7 @@ function spawnOne(state, rng) {
   const index = state.spawnedCount;
   const word = state.queue[index];
   let fallSeconds = state.fallSeconds;
-  if (state.mode === 'campaign' && state.levelId >= 4 && index >= state.waveSize - 3) {
+  if (!state.lockFall && state.mode === 'campaign' && state.levelId >= 4 && index >= state.waveSize - 3) {
     fallSeconds *= 0.9;
   }
   const tile = {

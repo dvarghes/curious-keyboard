@@ -17,6 +17,8 @@ export const defaultSettings = {
   quietMode: false,
   speech: false,
   leftHandedHintFlip: false,
+  countdownSeconds: 3,
+  difficulty: 'beginner',
 };
 
 export function blankStats() {

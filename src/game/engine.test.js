@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LEVELS, getLevel, HOME_PROMPTS, REACH_PROMPTS } from '../data/levels.js';
 import {
+  applyDifficulty,
   applyMiss,
   comboMultiplier,
   createRun,
@@ -181,6 +182,35 @@ test('last three tiles of level 4+ fall faster', () => {
   for (const value of recorded.slice(-3)) {
     assert.ok(Math.abs(value - level.fallSeconds * 0.9) < 0.001);
   }
+});
+
+test('difficulty sets one fall time for every word', () => {
+  const level = getLevel(8);
+  const state = createRun({
+    level,
+    mode: 'campaign',
+    queue: Array.from({ length: level.waveSize }, () => 'because'),
+  });
+  applyDifficulty(state, 'expert');
+  state.reducedMotion = true;
+  state.lives = 40;
+  const recorded = [];
+  const seen = new Set();
+  let steps = 0;
+  while (recorded.length < level.waveSize && steps < 20000) {
+    stepRun(state, 0.05, () => 0.4);
+    for (const tile of state.tiles) {
+      if (!seen.has(tile.id)) {
+        seen.add(tile.id);
+        recorded.push(tile.fallSeconds);
+      }
+    }
+    const falling = state.tiles.filter((item) => item.status === 'falling');
+    if (falling.length >= level.maxInFlight) applyMiss(state, falling[0]);
+    steps += 1;
+  }
+  assert.equal(recorded.length, level.waveSize);
+  assert.ok(recorded.every((value) => value === 3));
 });
 
 function tile(id, word, progress, seq) {

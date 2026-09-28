@@ -3,6 +3,7 @@ import { SCENES } from '../data/scenes.js';
 import { en } from '../strings/en.js';
 import { fingerById, fingerIdForKey, promptLabel } from '../data/fingers.js';
 import {
+  applyDifficulty,
   handleKey,
   makeRun,
   nextExpected,
@@ -54,6 +55,27 @@ export function Playfield({ profile, level, mode, onExit, onComplete, onScene })
   const askRef = useRef(null);
   const mistakeTimer = useRef(0);
   const shakeFlip = useRef(false);
+  const countdownRef = useRef(0);
+  const [countdown, setCountdown] = useState(0);
+  const [countdownRun, setCountdownRun] = useState(0);
+  const [fallSeconds, setFallSeconds] = useState(7);
+
+  function prepareRun() {
+    const run = makeRun(level, mode);
+    const chosen = settingsRef.current;
+    run.reducedMotion = Boolean(chosen.reducedMotion);
+    applyDifficulty(run, chosen.difficulty || 'beginner');
+    return run;
+  }
+
+  function armCountdown(seconds) {
+    const count = [0, 3, 5, 10].includes(Number(seconds)) ? Number(seconds) : 0;
+    countdownRef.current = count;
+    setCountdown(count);
+    setCountdownRun((value) => value + 1);
+    pausedRef.current = count > 0;
+    setFallSeconds(runRef.current?.fallSeconds || 7);
+  }
 
   function clearMistake() {
     window.clearTimeout(mistakeTimer.current);
@@ -119,16 +141,15 @@ export function Playfield({ profile, level, mode, onExit, onComplete, onScene })
   });
 
   useEffect(() => {
-    const run = makeRun(level, mode);
-    run.reducedMotion = Boolean(profile.settings.reducedMotion);
+    const run = prepareRun();
     runRef.current = run;
     const visible = keyboardInitially(profile.settings, level.id, mode);
     setShowKeys(visible);
     eyesRef.current = !visible;
     doneRef.current = false;
-    pausedRef.current = false;
     setPaused(false);
     clearMistake();
+    armCountdown(profile.settings.countdownSeconds);
     publish(run);
     setReady(true);
     return () => {
@@ -149,6 +170,7 @@ export function Playfield({ profile, level, mode, onExit, onComplete, onScene })
 
   useEffect(() => {
     const onKey = (event) => {
+      if (countdownRef.current > 0) return;
       const action = normalizeGameKey(event);
       if (!action) return;
       if (action === 'reload') {
@@ -225,13 +247,28 @@ export function Playfield({ profile, level, mode, onExit, onComplete, onScene })
     setPaused(false);
   }
 
+  useEffect(() => {
+    if (countdown <= 0) return undefined;
+    const id = window.setTimeout(() => {
+      setCountdown((current) => {
+        const next = Math.max(0, current - 1);
+        countdownRef.current = next;
+        if (next === 0) pausedRef.current = false;
+        return next;
+      });
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [countdown, countdownRun]);
+
   function restart() {
-    const run = makeRun(level, mode);
-    run.reducedMotion = Boolean(settingsRef.current.reducedMotion);
+    const run = prepareRun();
     runRef.current = run;
     doneRef.current = false;
     clearMistake();
-    resume();
+    askRef.current = null;
+    setAsk(null);
+    setPaused(false);
+    armCountdown(settingsRef.current.countdownSeconds);
     publish(run);
   }
 
@@ -241,7 +278,7 @@ export function Playfield({ profile, level, mode, onExit, onComplete, onScene })
   const title = mode === 'letters' ? 'Letter Garden' : mode === 'homerow' ? 'Home Row Only' : level.name;
 
   return (
-    <section className={`play-root scene-${profile.sceneId}`} data-testid="playfield" data-fall={level.fallSeconds}>
+    <section className={`play-root scene-${profile.sceneId}`} data-testid="playfield" data-fall={fallSeconds}>
       <header className="hud">
         <div className="hud-group">
           <Avatar id={profile.avatarId} size={42} />
@@ -294,6 +331,12 @@ export function Playfield({ profile, level, mode, onExit, onComplete, onScene })
       {showKeys && (
         <div className="key-dock">
           <Keyboard target={expected} wrongKey={mistake ? mistake.key : ''} fingerColors={profile.settings.fingerColors} announce={finger} />
+        </div>
+      )}
+      {countdown > 0 && (
+        <div className="countdown" role="status" aria-live="assertive" data-testid="countdown">
+          <p>{countdown}</p>
+          <span>{en.getReady}</span>
         </div>
       )}
       {(paused || ask) && (
